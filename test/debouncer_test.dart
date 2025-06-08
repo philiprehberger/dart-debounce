@@ -39,5 +39,35 @@ void main() {
       debouncer.cancel();
       expect(debouncer.isActive, isFalse);
     });
+
+    test('immediate mode calls action on first call', () {
+      final debouncer =
+          Debouncer(delay: Duration(milliseconds: 100), immediate: true);
+      var called = false;
+      debouncer.call(() => called = true);
+      expect(called, isTrue);
+    });
+
+    test('immediate mode ignores subsequent calls within delay', () async {
+      final debouncer =
+          Debouncer(delay: Duration(milliseconds: 50), immediate: true);
+      var callCount = 0;
+      debouncer.call(() => callCount++);
+      debouncer.call(() => callCount++);
+      debouncer.call(() => callCount++);
+      expect(callCount, 1);
+      await Future<void>.delayed(Duration(milliseconds: 80));
+    });
+
+    test('immediate mode fires again after delay resets', () async {
+      final debouncer =
+          Debouncer(delay: Duration(milliseconds: 50), immediate: true);
+      var callCount = 0;
+      debouncer.call(() => callCount++);
+      expect(callCount, 1);
+      await Future<void>.delayed(Duration(milliseconds: 80));
+      debouncer.call(() => callCount++);
+      expect(callCount, 2);
+    });
   });
 }

@@ -16,7 +16,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_debounce: ^0.1.1
+  philiprehberger_debounce: ^0.2.0
 ```
 
 Then run:
@@ -33,6 +33,15 @@ import 'package:philiprehberger_debounce/debounce.dart';
 final debouncer = Debouncer(delay: Duration(milliseconds: 300));
 debouncer.call(() => print('Search executed'));
 debouncer.call(() => print('Only this one runs'));
+```
+
+### Immediate Mode
+
+```dart
+import 'package:philiprehberger_debounce/philiprehberger_debounce.dart';
+
+final debouncer = Debouncer(delay: Duration(milliseconds: 300), immediate: true);
+debouncer.call(() => print('Fires immediately, then ignores for 300ms'));
 ```
 
 ### Throttler
@@ -61,7 +70,7 @@ scrollStream
 
 | Method | Description |
 |--------|-------------|
-| `Debouncer(delay:)` | Create a debouncer with the given delay |
+| `Debouncer(delay:, immediate:)` | Create a debouncer with the given delay and optional immediate mode |
 | `Debouncer.call(action)` | Schedule action after delay, resetting on repeated calls |
 | `Debouncer.cancel()` | Cancel any pending debounced call |
 | `Debouncer.isActive` | Whether a debounced call is pending |
