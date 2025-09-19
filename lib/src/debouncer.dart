@@ -18,6 +18,7 @@ class Debouncer {
   final bool immediate;
 
   Timer? _timer;
+  void Function()? _pendingAction;
   bool _hasCalledImmediate = false;
 
   /// Create a debouncer with the given [delay].
@@ -44,12 +45,33 @@ class Debouncer {
         action();
       }
       _timer?.cancel();
+      _pendingAction = null;
       _timer = Timer(delay, () {
         _hasCalledImmediate = false;
       });
     } else {
       _timer?.cancel();
-      _timer = Timer(delay, action);
+      _pendingAction = action;
+      _timer = Timer(delay, () {
+        _pendingAction = null;
+        action();
+      });
+    }
+  }
+
+  /// Immediately execute the pending action (if any) and cancel the timer.
+  ///
+  /// In trailing mode, if a call is pending the action fires right away
+  /// and the timer is cancelled. In immediate mode, the action has already
+  /// fired so this simply resets state.
+  ///
+  /// Useful for cleanup or dispose scenarios where you want to ensure the
+  /// last scheduled action runs before tearing down.
+  void flush() {
+    final action = _pendingAction;
+    cancel();
+    if (action != null) {
+      action();
     }
   }
 
@@ -57,6 +79,7 @@ class Debouncer {
   void cancel() {
     _timer?.cancel();
     _timer = null;
+    _pendingAction = null;
     _hasCalledImmediate = false;
   }
 }
