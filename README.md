@@ -16,7 +16,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_debounce: ^0.1.0
+  philiprehberger_debounce: ^0.1.1
 ```
 
 Then run:
