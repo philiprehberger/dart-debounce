@@ -1,7 +1,7 @@
 name: philiprehberger_debounce
 description: >-
   Debounce and throttle utilities with Stream transformers and cancellation
-version: 0.1.0
+version: 0.1.1
 homepage: https://philiprehberger.com/open-source-packages/dart/philiprehberger_debounce
 repository: https://github.com/philiprehberger/dart-debounce
 issue_tracker: https://github.com/philiprehberger/dart-debounce/issues
