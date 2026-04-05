@@ -16,7 +16,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_debounce: ^0.2.0
+  philiprehberger_debounce: ^0.3.0
 ```
 
 Then run:
@@ -42,6 +42,16 @@ import 'package:philiprehberger_debounce/philiprehberger_debounce.dart';
 
 final debouncer = Debouncer(delay: Duration(milliseconds: 300), immediate: true);
 debouncer.call(() => print('Fires immediately, then ignores for 300ms'));
+```
+
+### Flush Pending Action
+
+```dart
+final debouncer = Debouncer(delay: Duration(milliseconds: 300));
+debouncer.call(() => saveData());
+
+// On dispose, ensure the pending save executes immediately
+debouncer.flush();
 ```
 
 ### Throttler
@@ -72,6 +82,7 @@ scrollStream
 |--------|-------------|
 | `Debouncer(delay:, immediate:)` | Create a debouncer with the given delay and optional immediate mode |
 | `Debouncer.call(action)` | Schedule action after delay, resetting on repeated calls |
+| `Debouncer.flush()` | Immediately execute any pending action and cancel the timer |
 | `Debouncer.cancel()` | Cancel any pending debounced call |
 | `Debouncer.isActive` | Whether a debounced call is pending |
 | `Throttler(interval:, leading:, trailing:)` | Create a throttler with interval and edge options |
