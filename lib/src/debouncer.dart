@@ -17,15 +17,20 @@ class Debouncer {
   /// Whether to execute on the leading edge instead of the trailing edge.
   final bool immediate;
 
+  /// Optional maximum time to wait before forcing execution.
+  final Duration? maxWait;
+
   Timer? _timer;
   void Function()? _pendingAction;
   bool _hasCalledImmediate = false;
+  DateTime? _firstCallTime;
+  Timer? _maxWaitTimer;
 
   /// Create a debouncer with the given [delay].
   ///
   /// If [immediate] is true, the action fires on the first call and
   /// subsequent calls within the [delay] window are ignored.
-  Debouncer({required this.delay, this.immediate = false});
+  Debouncer({required this.delay, this.immediate = false, this.maxWait});
 
   /// Whether a debounced call is pending.
   bool get isActive => _timer?.isActive ?? false;
@@ -52,7 +57,27 @@ class Debouncer {
     } else {
       _timer?.cancel();
       _pendingAction = action;
+
+      if (maxWait != null && _firstCallTime == null) {
+        _firstCallTime = DateTime.now();
+        _maxWaitTimer?.cancel();
+        _maxWaitTimer = Timer(maxWait!, () {
+          final pending = _pendingAction;
+          _timer?.cancel();
+          _timer = null;
+          _pendingAction = null;
+          _firstCallTime = null;
+          _maxWaitTimer = null;
+          if (pending != null) {
+            pending();
+          }
+        });
+      }
+
       _timer = Timer(delay, () {
+        _maxWaitTimer?.cancel();
+        _maxWaitTimer = null;
+        _firstCallTime = null;
         _pendingAction = null;
         action();
       });
@@ -79,7 +104,10 @@ class Debouncer {
   void cancel() {
     _timer?.cancel();
     _timer = null;
+    _maxWaitTimer?.cancel();
+    _maxWaitTimer = null;
     _pendingAction = null;
     _hasCalledImmediate = false;
+    _firstCallTime = null;
   }
 }

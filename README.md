@@ -16,7 +16,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_debounce: ^0.3.0
+  philiprehberger_debounce: ^0.4.0
 ```
 
 Then run:
@@ -54,6 +54,21 @@ debouncer.call(() => saveData());
 debouncer.flush();
 ```
 
+### Max Wait
+
+```dart
+final debouncer = Debouncer(
+  delay: Duration(milliseconds: 300),
+  maxWait: Duration(milliseconds: 1000),
+);
+
+// Even with continuous calls, the action fires at least every 1000ms
+for (var i = 0; i < 100; i++) {
+  debouncer.call(() => print('Autosave'));
+  await Future.delayed(Duration(milliseconds: 50));
+}
+```
+
 ### Throttler
 
 ```dart
@@ -80,7 +95,7 @@ scrollStream
 
 | Method | Description |
 |--------|-------------|
-| `Debouncer(delay:, immediate:)` | Create a debouncer with the given delay and optional immediate mode |
+| `Debouncer(delay:, {immediate, maxWait})` | Create a debouncer with delay, optional immediate mode, and optional max wait |
 | `Debouncer.call(action)` | Schedule action after delay, resetting on repeated calls |
 | `Debouncer.flush()` | Immediately execute any pending action and cancel the timer |
 | `Debouncer.cancel()` | Cancel any pending debounced call |
