@@ -66,6 +66,21 @@ class Throttler {
     });
   }
 
+  /// Immediately execute the pending trailing action (if any) and reset.
+  ///
+  /// Useful for cleanup or dispose scenarios where a pending trailing
+  /// action would otherwise be lost when the cooldown timer is cancelled.
+  /// No-op if no trailing action is pending.
+  void flush() {
+    final action = _pendingAction;
+    final hadPending = _hasPending;
+    cancel();
+    if (hadPending && action != null) {
+      _lastExecution = DateTime.now();
+      action();
+    }
+  }
+
   /// Cancel any pending throttled call.
   void cancel() {
     _timer?.cancel();

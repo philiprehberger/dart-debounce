@@ -80,4 +80,67 @@ extension DebounceThrottleStream<T> on Stream<T> {
 
     return controller.stream;
   }
+
+  /// Emit at most one value per [interval], always including the latest
+  /// value when the window ends.
+  ///
+  /// Like [throttle] this rate-limits emissions, but it also guarantees
+  /// the most recent value is emitted on the trailing edge so the
+  /// consumer never misses the final state. Useful for slider drags,
+  /// scroll positions, or cursor coordinates where the last value
+  /// matters most.
+  ///
+  /// ```dart
+  /// sliderStream
+  ///     .throttleLatest(Duration(milliseconds: 100))
+  ///     .listen(saveValue);
+  /// ```
+  Stream<T> throttleLatest(Duration interval) {
+    Timer? timer;
+    // ignore: close_sinks
+    final controller = isBroadcast
+        ? StreamController<T>.broadcast()
+        : StreamController<T>();
+
+    late StreamSubscription<T> subscription;
+    T? latest;
+    var hasLatest = false;
+    var inCooldown = false;
+
+    void emitLatest() {
+      if (hasLatest) {
+        controller.add(latest as T);
+        hasLatest = false;
+      }
+    }
+
+    subscription = listen(
+      (event) {
+        if (!inCooldown) {
+          controller.add(event);
+          inCooldown = true;
+          timer = Timer(interval, () {
+            inCooldown = false;
+            emitLatest();
+          });
+        } else {
+          latest = event;
+          hasLatest = true;
+        }
+      },
+      onError: controller.addError,
+      onDone: () {
+        timer?.cancel();
+        emitLatest();
+        controller.close();
+      },
+    );
+
+    controller.onCancel = () {
+      timer?.cancel();
+      subscription.cancel();
+    };
+
+    return controller.stream;
+  }
 }

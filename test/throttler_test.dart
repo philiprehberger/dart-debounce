@@ -25,5 +25,30 @@ void main() {
       throttler.cancel();
       expect(throttler.isActive, isFalse);
     });
+
+    test('flush fires pending trailing action immediately', () {
+      var count = 0;
+      final throttler = Throttler(
+        interval: Duration(seconds: 1),
+        leading: true,
+        trailing: true,
+      );
+      throttler.call(() => count++); // leading fires
+      throttler.call(() => count++); // queued as trailing
+      expect(count, equals(1));
+      throttler.flush();
+      expect(count, equals(2));
+      expect(throttler.isActive, isFalse);
+    });
+
+    test('flush is no-op when nothing pending', () {
+      var count = 0;
+      final throttler = Throttler(interval: Duration(seconds: 1));
+      throttler.flush();
+      expect(count, equals(0));
+      throttler.call(() => count++); // leading
+      throttler.flush(); // no trailing queued
+      expect(count, equals(1));
+    });
   });
 }

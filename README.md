@@ -4,6 +4,8 @@
 [![pub package](https://img.shields.io/pub/v/philiprehberger_debounce.svg)](https://pub.dev/packages/philiprehberger_debounce)
 [![Last updated](https://img.shields.io/github/last-commit/philiprehberger/dart-debounce)](https://github.com/philiprehberger/dart-debounce/commits/main)
 
+![philiprehberger_debounce](https://raw.githubusercontent.com/philiprehberger/dart-debounce/main/package-card.webp)
+
 Debounce and throttle utilities with Stream transformers and cancellation
 
 ## Requirements
@@ -16,7 +18,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  philiprehberger_debounce: ^0.4.0
+  philiprehberger_debounce: ^0.5.0
 ```
 
 Then run:
@@ -77,6 +79,20 @@ throttler.call(() => print('Scroll handler'));
 throttler.call(() => print('Skipped - too soon'));
 ```
 
+### Throttler Flush
+
+```dart
+final throttler = Throttler(
+  interval: Duration(seconds: 1),
+  trailing: true,
+);
+throttler.call(() => save()); // leading fires
+throttler.call(() => save()); // queued as trailing
+
+// On dispose, fire the queued trailing immediately
+throttler.flush();
+```
+
 ### Stream Transformers
 
 ```dart
@@ -85,10 +101,15 @@ textFieldStream
     .debounce(Duration(milliseconds: 300))
     .listen((query) => search(query));
 
-// Throttle a stream
+// Throttle a stream (leading edge only)
 scrollStream
     .throttle(Duration(milliseconds: 100))
     .listen((offset) => updateUI(offset));
+
+// Throttle with guaranteed trailing value (great for sliders)
+sliderStream
+    .throttleLatest(Duration(milliseconds: 100))
+    .listen((value) => saveValue(value));
 ```
 
 ## API
@@ -102,10 +123,12 @@ scrollStream
 | `Debouncer.isActive` | Whether a debounced call is pending |
 | `Throttler(interval:, leading:, trailing:)` | Create a throttler with interval and edge options |
 | `Throttler.call(action)` | Execute action respecting the throttle interval |
+| `Throttler.flush()` | Immediately execute pending trailing action and reset |
 | `Throttler.cancel()` | Cancel any pending throttled call |
 | `Throttler.isActive` | Whether the throttler is in its cooldown period |
 | `Stream.debounce(delay)` | Emit only the last value after a pause of delay |
-| `Stream.throttle(interval)` | Emit at most one value per interval |
+| `Stream.throttle(interval)` | Emit at most one value per interval (leading edge) |
+| `Stream.throttleLatest(interval)` | Emit leading + guaranteed trailing latest per interval |
 
 ## Development
 
